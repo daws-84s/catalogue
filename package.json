@@ -13,7 +13,7 @@
     "express": "^4.15.4",
     "mongodb": "^4.7.0",
     "pino": "^5.10.8",
-    "redis": "^2.8.0",
+    "redis": "^3.1.1",
     "express-pino-logger": "^4.0.0",
     "pino-pretty": "^2.5.0",
     "@instana/collector": "^1.132.2"
