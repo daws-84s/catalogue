@@ -87,7 +87,8 @@ pipeline {
                     // Filter alerts by severity
                     def criticalOrHigh = json.findAll { alert ->
                         def severity = alert?.security_advisory?.severity?.toLowerCase()
-                        return (severity == "critical" || severity == "high")
+                        def state = alert?.state?.toLowerCase()
+                        return (state == "open" && severity == "critical" || severity == "high")
                     }
 
                     if (criticalOrHigh.size() > 0) {
