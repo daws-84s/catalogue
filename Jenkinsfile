@@ -115,31 +115,33 @@ pipeline {
         stage('Check Scan Results') {
             steps {
                 script {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1') {
                     // Fetch scan findings
-                    def findings = sh(
-                        script: """
-                            aws ecr describe-image-scan-findings \
-                              --repository-name ${PROJECT}/${COMPONENT} \
-                              --image-id imageTag=${appVersion} \
-                              --region ${REGION} \
-                              --output json
-                        """,
-                        returnStdout: true
-                    ).trim()
+                        def findings = sh(
+                            script: """
+                                aws ecr describe-image-scan-findings \
+                                --repository-name ${PROJECT}/${COMPONENT} \
+                                --image-id imageTag=${appVersion} \
+                                --region ${REGION} \
+                                --output json
+                            """,
+                            returnStdout: true
+                        ).trim()
 
-                    // Parse JSON
-                    def json = readJSON text: findings
+                        // Parse JSON
+                        def json = readJSON text: findings
 
-                    def highCritical = json.imageScanFindings.findings.findAll {
-                        it.severity == "HIGH" || it.severity == "CRITICAL"
-                    }
+                        def highCritical = json.imageScanFindings.findings.findAll {
+                            it.severity == "HIGH" || it.severity == "CRITICAL"
+                        }
 
-                    if (highCritical.size() > 0) {
-                        echo "❌ Found ${highCritical.size()} HIGH/CRITICAL vulnerabilities!"
-                        currentBuild.result = 'FAILURE'
-                        error("Build failed due to vulnerabilities")
-                    } else {
-                        echo "✅ No HIGH/CRITICAL vulnerabilities found."
+                        if (highCritical.size() > 0) {
+                            echo "❌ Found ${highCritical.size()} HIGH/CRITICAL vulnerabilities!"
+                            currentBuild.result = 'FAILURE'
+                            error("Build failed due to vulnerabilities")
+                        } else {
+                            echo "✅ No HIGH/CRITICAL vulnerabilities found."
+                        }
                     }
                 }
             }
